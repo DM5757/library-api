@@ -8,6 +8,7 @@ import com.davit.libraryapi.exception.ResourceNotFoundException;
 import com.davit.libraryapi.repository.AuthorRepository;
 import com.davit.libraryapi.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class BookService {
     private final AuthorRepository authorRepository;
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public BookResponseDto createBook(BookRequestDto requestDto) {
         Author author = authorRepository.findById(requestDto.getAuthorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + requestDto.getAuthorId()));
@@ -50,6 +52,7 @@ public class BookService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public BookResponseDto updateBook(Long id, BookRequestDto requestDto) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
@@ -67,6 +70,7 @@ public class BookService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteBook(Long id) {
         if (!bookRepository.existsById(id)) {
             throw new ResourceNotFoundException("Book not found with id: " + id);

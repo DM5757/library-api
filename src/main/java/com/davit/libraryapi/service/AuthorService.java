@@ -7,6 +7,7 @@ import com.davit.libraryapi.exception.EmailAlreadyExistsException;
 import com.davit.libraryapi.exception.ResourceNotFoundException;
 import com.davit.libraryapi.repository.AuthorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class AuthorService {
     private final AuthorRepository authorRepository;
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public AuthorResponseDto createAuthor(AuthorRequestDto requestDto) {
         if (authorRepository.existsByEmail(requestDto.getEmail())) {
             throw new EmailAlreadyExistsException("Author with this email already exists");
@@ -45,6 +47,7 @@ public class AuthorService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public AuthorResponseDto updateAuthor(Long id, AuthorRequestDto requestDto) {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + id));
@@ -64,6 +67,7 @@ public class AuthorService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteAuthor(Long id) {
         if (!authorRepository.existsById(id)) {
             throw new ResourceNotFoundException("Author not found with id: " + id);

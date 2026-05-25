@@ -24,6 +24,8 @@ Java 17
 
 Spring Boot
 
+Spring Security
+
 Spring Web
 
 Spring Data JPA
@@ -179,11 +181,69 @@ After running the application, Swagger can be opened here.
 
     http://localhost:8080/swagger-ui/index.html
 
+The root URL also redirects to Swagger UI.
+
+    http://localhost:8080/
+
 Another possible URL is this.
 
     http://localhost:8080/swagger-ui.html
 
 Swagger shows all API endpoints and allows testing them from the browser.
+
+## Security
+
+Spring Security is added to protect the API.
+
+## Login Credentials
+
+There are two in-memory users for testing.
+
+**User Role:**
+- Username: `user`
+- Password: `user123`
+
+**Admin Role:**
+- Username: `admin`
+- Password: `admin123`
+
+Passwords are hashed with BCrypt.
+
+## Access Rules
+
+**Public Endpoints:**
+- `GET /` (Redirects to Swagger UI)
+- `GET /swagger-ui/**`
+- `GET /swagger-ui.html`
+- `GET /v3/api-docs/**`
+- `GET /h2-console/**`
+- `GET /login`
+
+**Authenticated Endpoints (USER and ADMIN):**
+- `GET /api/authors/**`
+- `GET /api/books/**`
+
+**ADMIN-Only Endpoints:**
+- `POST /api/authors`
+- `PUT /api/authors/**`
+- `DELETE /api/authors/**`
+- `POST /api/books`
+- `PUT /api/books/**`
+- `DELETE /api/books/**`
+
+**Security Behavior:**
+- Unauthenticated requests to `/api/**` return `401 Unauthorized` instead of redirecting to login.
+- Forbidden requests (e.g., USER trying to POST) return `403 Forbidden`.
+- Other protected paths redirect to `/login`.
+
+## Method Security
+
+Method-level security is enabled with `@EnableMethodSecurity`.
+Critical service methods in `AuthorService` and `BookService` are protected with `@PreAuthorize("hasRole('ADMIN')")`.
+
+## CSRF Explanation
+
+CSRF is disabled in this project because it is a REST API tested with Swagger and it does not use server-side HTML forms.
 
 ## H2 Database Console
 
@@ -223,7 +283,7 @@ Run this command in the project folder.
 
 Current test result.
 
-    Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+    Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
 
     BUILD SUCCESS
 
@@ -250,5 +310,9 @@ Validation works correctly.
 Not found errors return 404.
 
 Duplicate email returns 409.
+
+Security works correctly.
+
+Admin functionality is protected.
 
 Maven tests pass successfully.
