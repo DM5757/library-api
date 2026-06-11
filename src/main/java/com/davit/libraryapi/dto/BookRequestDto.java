@@ -13,8 +13,8 @@ import java.time.LocalDate;
 @Builder
 public class BookRequestDto {
 
-    @NotBlank(message = "Title is required")
-    @Size(min = 2, max = 150, message = "Title must be between 2 and 150 characters")
+    @NotBlank(message = "{book.title.required}")
+    @Size(min = 2, max = 150, message = "{book.title.size}")
     private String title;
 
     @Size(max = 30, message = "ISBN must be at most 30 characters")

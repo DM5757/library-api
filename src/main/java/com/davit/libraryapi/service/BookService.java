@@ -8,6 +8,7 @@ import com.davit.libraryapi.exception.ResourceNotFoundException;
 import com.davit.libraryapi.repository.AuthorRepository;
 import com.davit.libraryapi.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookService {
@@ -26,7 +28,10 @@ public class BookService {
     @PreAuthorize("hasRole('ADMIN')")
     public BookResponseDto createBook(BookRequestDto requestDto) {
         Author author = authorRepository.findById(requestDto.getAuthorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + requestDto.getAuthorId()));
+                .orElseThrow(() -> {
+                    log.warn("Author not found for book creation: {}", requestDto.getAuthorId());
+                    return new ResourceNotFoundException("error.author.notFound", requestDto.getAuthorId());
+                });
 
         Book book = Book.builder()
                 .title(requestDto.getTitle())
@@ -36,6 +41,7 @@ public class BookService {
                 .build();
         
         Book savedBook = bookRepository.save(book);
+        log.info("Book created with id: {}", savedBook.getId());
         return mapToResponseDto(savedBook);
     }
 
@@ -47,7 +53,7 @@ public class BookService {
 
     public BookResponseDto getBookById(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("error.book.notFound", id));
         return mapToResponseDto(book);
     }
 
@@ -55,10 +61,10 @@ public class BookService {
     @PreAuthorize("hasRole('ADMIN')")
     public BookResponseDto updateBook(Long id, BookRequestDto requestDto) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("error.book.notFound", id));
         
         Author author = authorRepository.findById(requestDto.getAuthorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + requestDto.getAuthorId()));
+                .orElseThrow(() -> new ResourceNotFoundException("error.author.notFound", requestDto.getAuthorId()));
 
         book.setTitle(requestDto.getTitle());
         book.setIsbn(requestDto.getIsbn());
@@ -73,7 +79,7 @@ public class BookService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteBook(Long id) {
         if (!bookRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Book not found with id: " + id);
+            throw new ResourceNotFoundException("error.book.notFound", id);
         }
         bookRepository.deleteById(id);
     }

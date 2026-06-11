@@ -7,6 +7,7 @@ import com.davit.libraryapi.exception.EmailAlreadyExistsException;
 import com.davit.libraryapi.exception.ResourceNotFoundException;
 import com.davit.libraryapi.repository.AuthorRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthorService {
@@ -24,13 +26,15 @@ public class AuthorService {
     @PreAuthorize("hasRole('ADMIN')")
     public AuthorResponseDto createAuthor(AuthorRequestDto requestDto) {
         if (authorRepository.existsByEmail(requestDto.getEmail())) {
-            throw new EmailAlreadyExistsException("Author with this email already exists");
+            log.warn("Attempt to create author with duplicate email: {}", requestDto.getEmail());
+            throw new EmailAlreadyExistsException("error.email.exists");
         }
         Author author = Author.builder()
                 .fullName(requestDto.getFullName())
                 .email(requestDto.getEmail())
                 .build();
         Author savedAuthor = authorRepository.save(author);
+        log.info("Author created with id: {}", savedAuthor.getId());
         return mapToResponseDto(savedAuthor);
     }
 
@@ -41,8 +45,12 @@ public class AuthorService {
     }
 
     public AuthorResponseDto getAuthorById(Long id) {
+        log.debug("Fetching author with id: {}", id);
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Author not found with id: {}", id);
+                    return new ResourceNotFoundException("error.author.notFound", id);
+                });
         return mapToResponseDto(author);
     }
 
@@ -50,12 +58,12 @@ public class AuthorService {
     @PreAuthorize("hasRole('ADMIN')")
     public AuthorResponseDto updateAuthor(Long id, AuthorRequestDto requestDto) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("error.author.notFound", id));
         
         authorRepository.findByEmail(requestDto.getEmail())
                 .ifPresent(existingAuthor -> {
                     if (!existingAuthor.getId().equals(id)) {
-                        throw new EmailAlreadyExistsException("Author with this email already exists");
+                        throw new EmailAlreadyExistsException("error.email.exists");
                     }
                 });
 
@@ -70,7 +78,7 @@ public class AuthorService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteAuthor(Long id) {
         if (!authorRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Author not found with id: " + id);
+            throw new ResourceNotFoundException("error.author.notFound", id);
         }
         authorRepository.deleteById(id);
     }

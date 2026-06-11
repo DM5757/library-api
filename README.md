@@ -213,6 +213,7 @@ Passwords are hashed with BCrypt.
 
 **Public Endpoints:**
 - `GET /` (Redirects to Swagger UI)
+- `GET /api/metadata` (Application metadata and settings)
 - `GET /swagger-ui/**`
 - `GET /swagger-ui.html`
 - `GET /v3/api-docs/**`
@@ -263,17 +264,63 @@ Use these values.
 
 The password field is empty.
 
+## Profiles and Configuration
+
+The project uses Spring profiles for different environments.
+
+### Available Profiles
+- **dev**: Uses H2 in-memory database, enables H2 console, and sets logging to DEBUG.
+- **prod**: Expects real database settings through environment variables (PostgreSQL style).
+
+### Custom App Settings
+Custom settings are defined under `app.settings` prefix:
+- `applicationTitle`: Title of the application.
+- `defaultPageSize`: Default size for pagination.
+- `supportEmail`: Support contact email.
+- `externalServiceUrl`: URL for an external service.
+- `featureEnabled`: Boolean flag for features.
+
+## Internationalization (i18n)
+
+The API supports multiple languages for responses and validation errors using the `Accept-Language` header.
+- **English (en)**: Default language.
+- **Georgian (ka)**: Georgian translations.
+
+### How to Test i18n
+Add the `Accept-Language` header to your request:
+- `Accept-Language: en` returns English messages.
+- `Accept-Language: ka` returns Georgian messages.
+
+Supported i18n features:
+- Resource not found messages.
+- Duplicate email conflict messages.
+- Validation error messages (e.g., name required, invalid email).
+- Metadata retrieval success message.
+
+## Structured Logging
+
+Logging is implemented using SLF4J with Lombok `@Slf4j`.
+- **File Logging**: Logs are saved to `logs/app.log`.
+- **Rolling Policy**: Daily/size-based rotation (max 10MB, 7 days history).
+- **Log Levels**: 
+  - **Dev**: DEBUG level for the project package.
+  - **Prod**: WARN level for the project package.
+
 ## How to Run the Project
 
-The project can be run from IntelliJ by starting the main class.
+### From IntelliJ
+- Run the `LibraryApiApplication` main class.
+- To use a specific profile, add `-Dspring.profiles.active=dev` to VM options.
 
-    LibraryApiApplication
-
-It can also be run from terminal.
-
-    .\mvnw.cmd spring-boot:run
-
-After the app starts, open Swagger and test the endpoints.
+### From Command Line
+- Run with **dev** profile:
+  ```
+  .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
+  ```
+- Run with **prod** profile (ensure environment variables are set):
+  ```
+  .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=prod
+  ```
 
 ## How to Run Tests
 
