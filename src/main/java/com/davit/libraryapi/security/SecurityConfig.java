@@ -59,6 +59,7 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/metadata").permitAll()
                         .requestMatchers("/", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/h2-console/**", "/login").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         
                         // ADMIN only endpoints for authors
                         .requestMatchers(HttpMethod.POST, "/api/authors/**").hasRole("ADMIN")
@@ -69,6 +70,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
+                        
+                        // ADMIN only for Actuator metrics
+                        .requestMatchers("/actuator/metrics/**").hasRole("ADMIN")
                         
                         // Authenticated endpoints
                         .requestMatchers("/api/authors/**", "/api/books/**").authenticated()

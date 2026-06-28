@@ -34,3 +34,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Project Specific ###
+logs/
+*.log

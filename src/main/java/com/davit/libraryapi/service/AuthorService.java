@@ -6,7 +6,8 @@ import com.davit.libraryapi.entity.Author;
 import com.davit.libraryapi.exception.EmailAlreadyExistsException;
 import com.davit.libraryapi.exception.ResourceNotFoundException;
 import com.davit.libraryapi.repository.AuthorRepository;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final Counter authorCreatedCounter;
+
+    public AuthorService(AuthorRepository authorRepository, MeterRegistry meterRegistry) {
+        this.authorRepository = authorRepository;
+        this.authorCreatedCounter = Counter.builder("library.authors.created")
+                .description("Total number of authors created")
+                .register(meterRegistry);
+    }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -35,6 +43,7 @@ public class AuthorService {
                 .build();
         Author savedAuthor = authorRepository.save(author);
         log.info("Author created with id: {}", savedAuthor.getId());
+        authorCreatedCounter.increment();
         return mapToResponseDto(savedAuthor);
     }
 

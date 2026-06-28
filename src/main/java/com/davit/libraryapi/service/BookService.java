@@ -7,7 +7,8 @@ import com.davit.libraryapi.entity.Book;
 import com.davit.libraryapi.exception.ResourceNotFoundException;
 import com.davit.libraryapi.repository.AuthorRepository;
 import com.davit.libraryapi.repository.BookRepository;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,19 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BookService {
 
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
+    private final Counter bookCreatedCounter;
+
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, MeterRegistry meterRegistry) {
+        this.bookRepository = bookRepository;
+        this.authorRepository = authorRepository;
+        this.bookCreatedCounter = Counter.builder("library.books.created")
+                .description("Total number of books created")
+                .register(meterRegistry);
+    }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -42,6 +51,7 @@ public class BookService {
         
         Book savedBook = bookRepository.save(book);
         log.info("Book created with id: {}", savedBook.getId());
+        bookCreatedCounter.increment();
         return mapToResponseDto(savedBook);
     }
 

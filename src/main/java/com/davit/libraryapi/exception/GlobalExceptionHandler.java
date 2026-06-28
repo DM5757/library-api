@@ -25,6 +25,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage(ex.getMessage(), ex.getArgs(), ex.getMessage(), locale);
         
@@ -38,6 +39,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
+        log.warn("Email already exists: {}", ex.getMessage());
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage(ex.getMessage(), ex.getArgs(), ex.getMessage(), locale);
 

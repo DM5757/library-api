@@ -297,11 +297,22 @@ Supported i18n features:
 - Validation error messages (e.g., name required, invalid email).
 - Metadata retrieval success message.
 
+## Application Monitoring
+
+Spring Boot Actuator is used for monitoring.
+- **Health**: `GET /actuator/health` (Public) - Reports application and library status.
+- **Info**: `GET /actuator/info` (Public) - Displays project metadata.
+- **Metrics**: `GET /actuator/metrics` (Requires ADMIN) - Shows application metrics.
+
+Custom metrics include:
+- `library.authors.created`: Counter for total authors created.
+- `library.books.created`: Counter for total books created.
+
 ## Structured Logging
 
 Logging is implemented using SLF4J with Lombok `@Slf4j`.
 - **File Logging**: Logs are saved to `logs/app.log`.
-- **Rolling Policy**: Daily/size-based rotation (max 10MB, 7 days history).
+- **Rolling Policy**: Daily rotation, max 10MB per file, 7 days history.
 - **Log Levels**: 
   - **Dev**: DEBUG level for the project package.
   - **Prod**: WARN level for the project package.
@@ -310,56 +321,56 @@ Logging is implemented using SLF4J with Lombok `@Slf4j`.
 
 ### From IntelliJ
 - Run the `LibraryApiApplication` main class.
-- To use a specific profile, add `-Dspring.profiles.active=dev` to VM options.
+- To use a specific profile, add `-Dspring.profiles.active=dev` or `-Dspring.profiles.active=prod` to VM options.
 
 ### From Command Line
 - Run with **dev** profile:
   ```
   .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
   ```
-- Run with **prod** profile (ensure environment variables are set):
+- Run with **prod** profile (ensure environment variables like DATABASE_URL are set):
   ```
   .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=prod
   ```
 
-## How to Run Tests
+## User Credentials and Roles
 
-Run this command in the project folder.
+| Username | Password | Roles |
+| :--- | :--- | :--- |
+| user | user123 | USER |
+| admin | admin123 | ADMIN |
+
+## Security Rules
+
+- `GET /api/**`: Requires USER or ADMIN.
+- `POST/PUT/DELETE /api/**`: Requires ADMIN.
+- `/actuator/health`, `/actuator/info`: Public.
+- `/actuator/metrics`: Requires ADMIN.
+- `/swagger-ui/**`, `/h2-console/**`: Public.
+
+## Testing Instructions
+
+Run the following command in the project folder to execute all tests:
 
     .\mvnw.cmd clean test
 
-Current test result.
+To check code coverage with JaCoCo:
+1. Run tests.
+2. Open `target/site/jacoco/index.html` in a browser.
 
-    Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+## Custom App Settings
 
-    BUILD SUCCESS
+Configuration is managed via `AppSettingsProperties`.
+- `app.settings.application-title`: Title of the API.
+- `app.settings.support-email`: Support contact.
 
-## Testing Notes
+## Internationalization (i18n)
 
-The main application uses a file based H2 database.
+Error and validation messages are localized.
+- Use `Accept-Language: en` for English.
+- Use `Accept-Language: ka` for Georgian.
 
-Tests use an in memory H2 database.
+## Documentation
 
-This avoids database locking problems during tests.
-
-## Project Status
-
-The project runs successfully.
-
-Swagger works correctly.
-
-Author CRUD works correctly.
-
-Book CRUD works correctly.
-
-Validation works correctly.
-
-Not found errors return 404.
-
-Duplicate email returns 409.
-
-Security works correctly.
-
-Admin functionality is protected.
-
-Maven tests pass successfully.
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **H2 Console**: `http://localhost:8080/h2-console` (only in dev profile)
